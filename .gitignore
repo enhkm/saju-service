@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# 값이 없는 예시 파일만 커밋한다
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# secrets: Oracle Wallet·인증서·개인키 (OCI Autonomous DB 지갑 포함)
+wallet/
+wallets/
+Wallet_*/
+Wallet_*.zip
+cwallet.sso
+ewallet.p12
+ewallet.pem
+keystore.jks
+truststore.jks
+ojdbc.properties
+*.p12
+*.pfx
+*.key
+*.jks
+*.sso
+*.crt
+*.cer
+*.der
+.oci/
+oci_api_key*
+
+# 개인정보가 담길 수 있는 데이터 (크롤링 결과, 내보낸 사용자 데이터, DB 덤프)
+/output/
+/exports/
+*.dump
+*.dmp

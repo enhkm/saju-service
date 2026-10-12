@@ -1,36 +1,158 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 사주풀이 (saju-service)
 
-## Getting Started
+생년월일시로 사주 원국·오행·대운을 보여 주는 사주운세 서비스의 화면 시안입니다.
+한지 바탕, 먹 글씨, 낙관 주홍, 오방색, 궁서체로 동양적인 분위기를 냈습니다.
 
-First, run the development server:
+현재 단계에서는 **화면(메인 · 입력 · 결과)만 동작**하고, 결과는 **예시 사주 1건**(가상 인물)을 보여 줍니다.
+
+## 실행 방법
+
+필요한 것: Node.js 20 이상 (개발 환경은 v24 LTS)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd saju-service
+npm install          # 처음 한 번
+npm run dev          # 개발 서버 → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| 주소 | 화면 |
+|---|---|
+| `/` | 메인 페이지 |
+| `/input` | 생년월일·출생 시각 입력 |
+| `/result` | 결과 (샘플 사주) · 맨 아래 "내 생활 성향도 살펴보기" |
+| `/sasang` | 사상체질 소개 · 생활 성향 질문 · 사주와 비교 |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+그 밖의 명령:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build && npm start   # 배포용 빌드 후 실행
+npm run lint                 # 린트
+npm test                     # 단위 테스트 (생활 성향 요약 규칙·콘텐츠 규칙)
+npx tsc --noEmit             # 타입 검사
+```
 
-## Learn More
+## 화면 흐름
 
-To learn more about Next.js, take a look at the following resources:
+1. **메인(`/`)**에서 "내 사주 보기"를 누르면 입력 화면으로 갑니다.
+2. **입력(`/input`)**에서 이름, 성별, 양력·음력·윤달, 생년월일, 출생 시각(시간 모름 가능), 야자시 여부, 태어난 도시를 고릅니다.
+   - 생년월일은 숫자만 쳐도 `YYYY/MM/DD`로, 시각은 `HH:MM`으로 자동 정리됩니다.
+   - 시각을 입력하면 해당 12지시(예: 07:30 → 辰時)가 바로 표시되고, 12간지 시간표를 펼쳐 볼 수 있습니다.
+   - 도시를 고르면 지역시 보정값(예: 서울 -32분)을 안내합니다.
+3. "만세력 보기"를 누르면 입력값을 브라우저 탭(sessionStorage)에만 저장하고 **결과(`/result`)**로 이동합니다.
+   결과 맨 위에 입력한 정보와 함께 "아래는 예시 사주"라는 안내가 나옵니다.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 사상체질 소개 · 생활 성향 탐색 (`/sasang`)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+"사주로 보는 나"와 "생활 속에서 느끼는 나"를 나란히 놓고 보는 자기 탐색 콘텐츠입니다.
 
-## Deploy on Vercel
+흐름: 사주 결과 → 내 생활 성향도 살펴보기 → 체질 소개(건너뛰기 가능) → 생활 질문(건너뛰기 가능) → 성향 요약 → 사주와 비교
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 지키는 원칙
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 출생 정보·오행 분포·응답으로 사상체질을 판정하지 않습니다. 응답을 네 체질로 바꾸는 점수표가 코드에 없습니다.
+- 사주 오행과 태양인·태음인·소양인·소음인을 연결하지 않습니다. 네 유형 카드에 오행 색도 쓰지 않습니다.
+- 생활 질문은 진단 검사가 아니며, 질문 시작 화면에 그 사실을 표시합니다.
+- 체질 확률, 건강 예측, 음식·약 처방, 일치율·정확도 점수를 보여 주지 않습니다.
+- 체질 소개는 출처 원문에서 확인한 문장만 인용하고, 확인하지 못한 내용은 "검토 대기"로 표시합니다.
+
+### 요약 규칙 (`lib/sasang/summary.ts`)
+
+1. 그런 편이다·매우 그렇다는 "동의", 상황에 따라 다르다는 그대로, 전혀 아니다·아닌 편이다는 "동의하지 않음"으로 읽습니다.
+2. 서로 다른 성향을 묻는 두 문항을 한 영역으로 묶되, 점수를 빼서 상쇄하지 않고 각 응답을 문장으로 옮깁니다.
+3. 두 문항에 모두 동의하면 "…편이면서도, …편이라고 답했어요"처럼 두 모습을 함께 적습니다.
+4. 건너뛰었거나 보지 않은 문항은 문장에 넣지 않고 성향을 짐작하지 않습니다. 모두 건너뛰면 응답을 권하는 안내와 다시 시작 버튼을 보여 줍니다.
+
+### 개인정보
+
+- 응답과 비교 선택은 React 상태(메모리)에만 있습니다. localStorage, sessionStorage, 쿠키, 서버, 분석 도구로 보내지 않으며 새로고침하거나 페이지를 떠나면 사라집니다(화면에 안내).
+- 출생 정보를 다시 묻거나 복사해 두지 않습니다. 비교 화면의 사주 값은 서버에서 사주 결과를 읽어 넘기며, 지금은 계산 엔진이 없어 "내 사주 결과 없음"으로 시작하고 예시 사주는 "예시 · 내 결과 아님"으로 따로 표시합니다.
+- 얼굴 사진, 음성, 병력은 받지 않습니다.
+
+### 향후 Oracle DB 저장을 붙일 자리 (지금은 테이블을 만들지 않음)
+
+현재 프로젝트에는 Oracle Cloud·DB 연결 설정이 없습니다. 저장 기능을 추가한다면 다음 지점에서 확장합니다.
+
+- **저장 시점:** `components/sasang/SasangFlow.tsx`의 요약 단계에서 사용자가 명시적으로 "저장"을 고를 때만 저장합니다. 자동 저장은 하지 않습니다.
+- **API:** `app/api/sasang/route.ts`를 새로 만들어 서버에서만 Oracle에 씁니다(예: `oracledb` 드라이버, 접속 정보는 환경 변수 또는 OCI Vault).
+- **저장할 값:** 질문 버전(`QUESTION_SET.version`), 문항별 응답(건너뜀 포함), 비교 선택, 저장 시각, 로그인 사용자 id만 둡니다. 출생 정보는 사주 프로필 쪽에만 두고 복사하지 않습니다.
+- **함께 정할 것:** 저장 동의 문구, 보관 기간과 삭제 방법, 서버 로그에 응답 본문을 남기지 않는 설정.
+
+## 샘플 데이터로 대체한 부분과 이유
+
+| 항목 | 현재 상태 | 이유 | 이후 작업 |
+|---|---|---|---|
+| 사주 계산 (원국·십성·신살·오행·대운·일진) | 예시 사주 1건(1990/01/01 12:00 서울, 여, 가상 인물)을 표시 | 정밀 계산은 절기 경계 시각, 지역시·서머타임·1954~61년 표준시 변경, 대운수 반올림, 신살 기준(년지/일지) 같은 규칙을 맞춰야 합니다. 비교할 정답 자료가 1건뿐이라 지금 만들면 규칙이 맞는지 검증할 수 없습니다. | `lib/saju/` 계산 엔진 구현, 검증용 정답 사례를 늘린 뒤 테스트 |
+| 합·충·형·파·해 탭 | 표준 규칙으로 직접 채운 값 | 참고한 결과에 해당 내용이 없음 | 계산 엔진으로 재검증 |
+| 신강·신약 "OO%의 사람" 비율 | 표시하지 않음 | 자체 통계가 없음 | 자체 통계를 쌓은 뒤 표시 |
+| DB (프로필 저장, 불러오기) | 연결 안 함. 입력값은 sessionStorage에 임시 보관 | 사용할 DB 종류·접속 정보가 정해지지 않음 | DB 결정 후 `app/api/` 에 저장·조회 API 추가 |
+| 도시 검색 | 주요 도시 29곳 목록(`data/cities.ts`) | 외부 서비스의 도시 검색 API는 쓰지 않음 | 시군구 전체 좌표 데이터를 DB에 넣고 검색 API 구현 |
+
+## 폴더 구조
+
+```
+saju-service/
+├── app/                        # 페이지 (Next.js App Router)
+│   ├── layout.tsx              # 공통 머리말·바닥글, 글꼴
+│   ├── globals.css             # 색상 토큰(한지·먹·주홍·오방색), 궁서체, 다크 모드
+│   ├── page.tsx                # 메인 페이지
+│   ├── input/page.tsx          # 생년월일·출생 시각 입력
+│   ├── result/page.tsx         # 결과 (샘플 데이터) + 생활 성향 진입 버튼
+│   └── sasang/page.tsx         # 사상체질 소개 · 생활 성향 탐색
+├── components/
+│   ├── ui/                     # 공통 부품
+│   │   ├── GanjiTile.tsx       # 천간·지지 오행색 타일
+│   │   ├── Seal.tsx            # 낙관(도장)
+│   │   ├── CloudDivider.tsx    # 구름 문양 구분선
+│   │   └── Section.tsx         # 이중 테두리 카드 + 세로 한자 제목
+│   ├── input/
+│   │   └── ProfileForm.tsx     # 입력 폼 (검증, 자동 서식, 12간지 시간표)
+│   ├── sasang/                 # 생활 성향 탐색 화면
+│   │   ├── SasangFlow.tsx      # 단계 진행, 응답 메모리 보관
+│   │   ├── ConstitutionIntro.tsx # 체질 소개 카드, 출처·검토 대기 표시
+│   │   ├── Questionnaire.tsx   # 질문 시작 화면, 문항 화면(이전·건너뛰기·바로가기)
+│   │   └── SummaryView.tsx     # 성향 요약, 사주와 나란히 비교
+│   └── result/                 # 결과 섹션
+│       ├── SampleNotice.tsx    # 입력값 + "예시 사주" 안내
+│       ├── ProfileHeader.tsx   # 일주 도장, 양력·음력·지역시
+│       ├── PillarTable.tsx     # 사주 원국표
+│       ├── PalaceRelations.tsx # 궁성, 합·충·형·파·해 탭
+│       ├── StarsSection.tsx    # 신살과 길성
+│       ├── OhaengSection.tsx   # 오행 상생상극 도식, 오행·십성 비율
+│       ├── StrengthYongsin.tsx # 신강·신약, 용신
+│       ├── LuckSlider.tsx      # 대운·연운·월운
+│       └── IljinCalendar.tsx   # 일진 달력
+├── lib/
+│   ├── profileStore.ts         # 입력값 임시 저장 (sessionStorage)
+│   ├── saju/
+│   │   ├── constants.ts        # 천간·지지·오행·십성 기본표
+│   │   └── hours.ts            # 12간지 시간표
+│   └── sasang/
+│       ├── summary.ts          # 응답 요약 규칙 (순수 함수)
+│       └── sajuFacts.ts        # 비교 화면용 사주 값 정리
+├── data/
+│   ├── cities.ts               # 출생 도시 샘플 목록 (경도·시간대)
+│   ├── fixtures/
+│   │   └── sample_19900101.ts  # 예시 사주 (가상 인물)
+│   └── sasang/
+│       ├── constitutions.ts    # 체질 소개 콘텐츠·출처·검토 대기 목록
+│       └── questions.ts        # 질문·선택지·문항 버전
+├── types/saju.ts               # 프로필·사주 결과 타입
+├── types/sasang.ts             # 생활 성향 탐색 타입
+├── tests/sasang/summary.test.ts # 요약 규칙·콘텐츠 규칙 테스트
+└── vitest.config.mts
+```
+
+계산 엔진을 붙일 때 추가할 자리:
+
+```
+├── app/api/saju/route.ts       # 프로필 → 사주 결과 JSON
+├── app/api/cities/route.ts     # 도시 검색
+├── lib/saju/                   # pillars, sipseong, sinsal, ohaeng, luck … 계산 모듈
+└── tests/saju/                 # fixtures 와 계산 결과 비교 테스트
+```
+
+## 글꼴
+
+- 본문·한자 모두 궁서체를 씁니다. Windows는 설치된 **궁서**를 바로 쓰고, 궁서가 없는 기기(휴대폰·Mac)는 **조선궁서체**(조선일보) 웹폰트를 눈누 배포 CDN(jsDelivr)에서 내려받습니다.
+- 글꼴 파일은 재배포 조건을 확인하지 못해 저장소에 넣지 않았습니다. 직접 배포하려면 조선일보 배포 조건을 확인한 뒤 `public/fonts/`에 두고 `app/globals.css`의 주소를 바꾸세요.
+- 파일이 3.6MB로 큽니다. 실서비스 전에 쓰는 글자만 남겨 woff2로 줄이는 작업(서브셋)을 권장합니다.

@@ -1,26 +1,119 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * 궁서체: Windows에 설치된 궁서를 먼저 쓰고,
+ * 없으면(모바일·Mac) 조선궁서체(조선일보) 웹폰트를 눈누 배포 CDN에서 받는다.
+ * 글꼴 파일은 저장소에 포함하지 않는다(재배포 조건 미확인).
+ */
+@font-face {
+  font-family: "Gungseo";
+  src:
+    local("Gungsuh"),
+    local("궁서"),
+    url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGs.woff") format("woff");
+  font-display: swap;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/*
+ * 색상 토큰
+ * - 한지 바탕 / 먹 글씨 / 낙관 주홍
+ * - 오방색 기반 오행 색: 목(청) 화(적) 토(황) 금(백) 수(흑)
+ */
+:root {
+  --hanji: #f4eee1;
+  --hanji-deep: #ebe2cf;
+  --paper: #faf6ec;
+  --ink: #1f1b16;
+  --ink-soft: #5b5349;
+  --ink-faint: #655d52;
+  --line: rgb(31 27 22 / 0.14);
+  --line-strong: rgb(31 27 22 / 0.32);
+  --vermilion: #b23a2e;
+  --vermilion-soft: rgb(178 58 46 / 0.1);
+  --gold: #a8812f;
+  --azure: #2f5d8a;
+
+  --wood: #3e7d5a;
+  --fire: #b8412f;
+  --earth: #c99a3e;
+  --metal: #f7f3ea;
+  --water: #26303f;
+  --wood-ink: #f7f3ea;
+  --fire-ink: #f7f3ea;
+  --earth-ink: #1f1b16;
+  --metal-ink: #1f1b16;
+  --water-ink: #f4eee1;
+  /* 금은 흰색이라 막대그래프에서는 회색으로 대체 */
+  --metal-bar: #b3ab9c;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --hanji: #16130f;
+    --hanji-deep: #1d1914;
+    --paper: #1f1b16;
+    --ink: #ece4d3;
+    --ink-soft: #bdb3a2;
+    --ink-faint: #a39886;
+    --line: rgb(236 228 211 / 0.14);
+    --line-strong: rgb(236 228 211 / 0.32);
+    --vermilion: #e06a5d;
+    --vermilion-soft: rgb(210 86 74 / 0.14);
+    --gold: #c9a24b;
+    --azure: #8fb3d9;
+
+    --wood: #4e9a70;
+    --fire: #c9503d;
+    --earth: #c9a04a;
+    --metal: #e6dfd0;
+    --water: #3a4a63;
+    --metal-bar: #9d968a;
   }
 }
 
+@theme inline {
+  --color-hanji: var(--hanji);
+  --color-hanji-deep: var(--hanji-deep);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-vermilion: var(--vermilion);
+  --color-vermilion-soft: var(--vermilion-soft);
+  --color-gold: var(--gold);
+  --color-azure: var(--azure);
+
+  --font-serif: "Gungseo", var(--font-noto-serif), serif;
+  --font-hanja: "Gungseo", var(--font-noto-serif), serif;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--hanji);
+  /* 한지 질감: 아주 옅은 노이즈 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.38 0 0 0 0 0.28 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: var(--ink);
+  /* @theme inline 변수는 :root에 생성되지 않으므로 직접 지정 */
+  font-family: "Gungseo", var(--font-noto-serif), serif;
+  word-break: keep-all;
+}
+
+.writing-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+/* 탭·목차처럼 스크롤바가 필요 없는 가로 줄 */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 가로 슬라이드 스크롤바 정리 */
+.scroll-row {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
