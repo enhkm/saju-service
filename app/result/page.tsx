@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CloudDivider } from "@/components/ui/CloudDivider";
 import { Section } from "@/components/ui/Section";
-import { IljinCalendar } from "@/components/result/IljinCalendar";
-import { LuckSlider } from "@/components/result/LuckSlider";
 import { OhaengSection } from "@/components/result/OhaengSection";
 import { PalaceRelations } from "@/components/result/PalaceRelations";
 import { PillarTable } from "@/components/result/PillarTable";
@@ -11,13 +8,11 @@ import { ProfileHeader } from "@/components/result/ProfileHeader";
 import { SampleNotice } from "@/components/result/SampleNotice";
 import { StarsSection } from "@/components/result/StarsSection";
 import { StrengthYongsin } from "@/components/result/StrengthYongsin";
+import { IljinToday, LuckSections } from "@/components/result/TodaySections";
 import { sampleResult } from "@/data/fixtures/sample_19900101";
 import { stemInfo } from "@/lib/saju/constants";
 
 export const metadata: Metadata = { title: "사주 결과 · 사주풀이" };
-
-// 오늘 날짜(일진 강조·현재 대운)를 요청 시점 기준으로 계산
-export const dynamic = "force-dynamic";
 
 const NAV = [
   { id: "wonguk", label: "원국" },
@@ -29,21 +24,9 @@ const NAV = [
   { id: "iljin", label: "일진" },
 ];
 
-function seoulToday() {
-  const [y, m, d] = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" })
-    .format(new Date())
-    .split("-")
-    .map(Number);
-  return { y, m, d };
-}
-
 export default function ResultPage() {
   // 계산 엔진 연결 전: 예시 사주로 화면 구성. 이후 /api/saju 결과로 교체
   const r = sampleResult;
-  const today = seoulToday();
-  const birthYear = Number(r.profile.birthday.slice(0, 4));
-  const age = today.y - birthYear;
-  const daeunIdx = r.daeun.pillars.findLastIndex((p) => Number(p.label) <= age);
   const dayStem = r.pillars.find((p) => p.position === "day")!.stem;
 
   return (
@@ -90,29 +73,11 @@ export default function ResultPage() {
         </Section>
 
         <Section id="luck" title="운의 흐름" hanja="大運" description="좌우로 밀어서 더 볼 수 있습니다.">
-          <div className="space-y-6">
-            <LuckSlider
-              title="대운"
-              caption={`대운수 ${r.daeun.startAge} · 현재 ${age}세`}
-              items={r.daeun.pillars}
-              activeIndex={daeunIdx}
-            />
-            <CloudDivider />
-            <LuckSlider
-              title="연운"
-              items={r.yeonun}
-              activeIndex={r.yeonun.findIndex((p) => Number(p.label) === today.y)}
-            />
-            <CloudDivider />
-            <LuckSlider title="월운" caption={`${r.wolun.year}년`} items={r.wolun.pillars} />
-          </div>
+          <LuckSections result={r} />
         </Section>
 
         <Section id="iljin" title="일진 달력" hanja="日辰">
-          <IljinCalendar
-            month={r.iljin}
-            today={r.iljin.year === today.y && r.iljin.month === today.m ? today.d : undefined}
-          />
+          <IljinToday month={r.iljin} />
         </Section>
 
         <section

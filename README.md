@@ -3,6 +3,8 @@
 생년월일시로 사주 원국·오행·대운을 보여 주는 사주운세 서비스의 화면 시안입니다.
 한지 바탕, 먹 글씨, 낙관 주홍, 오방색, 궁서체로 동양적인 분위기를 냈습니다.
 
+**웹사이트:** https://enhkm.github.io/saju-service/
+
 현재 단계에서는 **화면(메인 · 입력 · 결과)만 동작**하고, 결과는 **예시 사주 1건**(가상 인물)을 보여 줍니다.
 
 ## 실행 방법
@@ -30,6 +32,20 @@ npm run lint                 # 린트
 npm test                     # 단위 테스트 (생활 성향 요약 규칙·콘텐츠 규칙)
 npx tsc --noEmit             # 타입 검사
 ```
+
+## 웹 배포 (GitHub Pages)
+
+사이트는 정적 파일(HTML·JS·CSS)로 빌드해 `gh-pages` 브랜치에 올리고, GitHub Pages가 그 브랜치를 그대로 서비스합니다.
+
+```bash
+# master 에 변경을 커밋·push 한 뒤
+npm run deploy:pages
+```
+
+- `scripts/deploy-pages.sh`가 저장소 이름을 경로로 붙여 빌드하고(`/saju-service/`), `gh-pages` 브랜치에 배포 커밋을 추가해 push 합니다. 강제 push는 하지 않습니다.
+- 반영까지 보통 1~2분 걸립니다.
+- 정적 사이트라 서버 기능(API, DB)은 쓸 수 없습니다. 사주 계산 API나 Oracle DB 저장을 붙일 때는 Vercel 또는 Oracle Cloud 서버처럼 Node.js가 도는 곳으로 옮겨야 합니다.
+- "오늘" 기준 강조(현재 대운, 올해 연운, 오늘 일진)는 방문자 브라우저에서 계산합니다.
 
 ## 화면 흐름
 
@@ -113,6 +129,7 @@ saju-service/
 │   │   └── SummaryView.tsx     # 성향 요약, 사주와 나란히 비교
 │   └── result/                 # 결과 섹션
 │       ├── SampleNotice.tsx    # 입력값 + "예시 사주" 안내
+│       ├── TodaySections.tsx   # 오늘 기준 강조(대운·연운·일진)를 브라우저에서 계산
 │       ├── ProfileHeader.tsx   # 일주 도장, 양력·음력·지역시
 │       ├── PillarTable.tsx     # 사주 원국표
 │       ├── PalaceRelations.tsx # 궁성, 합·충·형·파·해 탭
@@ -139,6 +156,8 @@ saju-service/
 ├── types/saju.ts               # 프로필·사주 결과 타입
 ├── types/sasang.ts             # 생활 성향 탐색 타입
 ├── tests/sasang/summary.test.ts # 요약 규칙·콘텐츠 규칙 테스트
+├── scripts/deploy-pages.sh     # GitHub Pages 배포
+├── next.config.ts              # 정적 사이트 빌드 설정(output: export, 경로 앞부분)
 └── vitest.config.mts
 ```
 
